@@ -39,9 +39,16 @@ Vite is configured with `--host`, which will print out your local network IP in 
 ### 2. Connect Your Phones
 1. Connect both phones to your home Wi-Fi network.
 2. Open Safari / Chrome on Phone 1 and Phone 2 to `http://192.168.1.XX:5173` (or scan the terminal QR code).
-3. **Phone 1 (Player 1):** Tap **"HOST MISSION"**, choose your role (e.g. Operative), and read out the 4-letter room code (e.g. `HAWK`).
-4. **Phone 2 (Player 2):** Tap **"JOIN MISSION"**, type in the room code, and choose the opposite role (Analyst).
-5. Both phones connect via direct WebRTC / P2P sync.
+3. **Phone 1 (Player 1):** Tap **"HOST MISSION"**, choose your role, and your phone displays a dedicated **Waiting Screen** with the 4-letter room code (e.g. `HAWK`). **The countdown timer stays paused.**
+4. **Phone 2 (Player 2):** Tap **"JOIN MISSION"**, type in `HAWK`, and select your role.
+5. **Auto-Sync:** The second Phone 2 connects, both phones play a link confirmation chime, the mission activates simultaneously, and the countdown timer begins!
+
+---
+
+## ⏱️ Mission Timers
+- **Rookie Agent:** 5m 00s (4 wires, generous time)
+- **Veteran Agent:** 4m 00s (4–5 wires, balanced challenge)
+- **Impossible Protocol:** 3m 00s (5–6 wires, high adrenaline)
 
 > 💡 **Tip:** You can also tap **"SOLO PRACTICE / TEST"** on a computer or phone to test out all 4 puzzle modules and switch between roles with one click!
 
