@@ -113,9 +113,8 @@ export function generateMission(difficulty: 'rookie' | 'veteran' | 'impossible' 
   const indicatorLabel = pick(['FRK', 'CAR', 'NSA', 'SIG'] as const);
   const indicatorLit = pick([true, false]);
 
-  // Wire module setup
-  const wireCounts = difficulty === 'rookie' ? [4] : difficulty === 'veteran' ? [4, 5] : [5, 6];
-  const wireLength = pick(wireCounts);
+  // Wire module setup: evenly randomized across 4, 5, and 6 wires
+  const wireLength = pick([4, 5, 6]);
   const colorsPool: WireColor[] = ['red', 'blue', 'yellow', 'white', 'black'];
   const wires: WireColor[] = Array.from({ length: wireLength }, () => pick(colorsPool));
   const correctWireIndex = calculateWireSolution(wires, serial);

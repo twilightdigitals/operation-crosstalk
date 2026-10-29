@@ -47,9 +47,9 @@ Vite is configured with `--host`, which will print out your local network IP in 
 ---
 
 ## ⏱️ Mission Timers
-- **Rookie Agent:** 5m 00s (4 wires, generous time)
-- **Veteran Agent:** 4m 00s (4–5 wires, balanced challenge)
-- **Impossible Protocol:** 3m 00s (5–6 wires, high adrenaline)
+- **Rookie Agent:** 5m 00s (generous time)
+- **Veteran Agent:** 4m 00s (balanced challenge)
+- **Impossible Protocol:** 3m 00s (high adrenaline)
 
 > 💡 **Tip:** You can also tap **"SOLO PRACTICE / TEST"** on a computer or phone to test out all 4 puzzle modules and switch between roles with one click!
 
