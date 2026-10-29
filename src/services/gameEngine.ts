@@ -41,6 +41,7 @@ export interface MemoryModuleState {
 
 export interface MissionState {
   missionId: string;
+  difficulty: 'rookie' | 'veteran' | 'impossible';
   serialNumber: string;
   batteryCount: number;
   indicator: {
@@ -151,6 +152,7 @@ export function generateMission(difficulty: 'rookie' | 'veteran' | 'impossible' 
 
   return {
     missionId: Math.random().toString(36).substring(2, 6).toUpperCase(),
+    difficulty,
     serialNumber: serial,
     batteryCount,
     indicator: {

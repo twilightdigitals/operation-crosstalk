@@ -20,6 +20,7 @@ export function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [difficulty, setDifficulty] = useState<'rookie' | 'veteran' | 'impossible'>('veteran');
 
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
@@ -340,6 +341,7 @@ export function App() {
 
     const newMission = generateMission(diff);
     newMission.status = 'waiting';
+    setDifficulty(diff);
 
     try {
       await network.createRoom(code, newMission);
@@ -379,7 +381,8 @@ export function App() {
   };
 
   const handlePlayAgain = (swapRoles: boolean) => {
-    const newMission = generateMission('veteran');
+    const currentDiff = gameState?.difficulty || difficulty;
+    const newMission = generateMission(currentDiff);
     newMission.status = 'active';
     setGameState(newMission);
 
