@@ -70,7 +70,7 @@ export const GLYPH_COLUMNS = [
 ];
 
 // Helper to determine wire solution
-function calculateWireSolution(wires: WireColor[], serialNumber: string, indicatorLit: boolean): number {
+function calculateWireSolution(wires: WireColor[], serialNumber: string): number {
   const lastChar = serialNumber.slice(-1);
   const lastDigit = parseInt(lastChar.match(/\d/) ? lastChar : serialNumber.split('').filter(c => /\d/.test(c)).pop() || '0', 10);
   const isOdd = lastDigit % 2 !== 0;
@@ -82,21 +82,18 @@ function calculateWireSolution(wires: WireColor[], serialNumber: string, indicat
 
   if (n === 4) {
     if (count('red') > 1 && isOdd) return lastIndexOf('red');
-    if (indicatorLit && count('red') === 0) return 2;
     if (wires[n - 1] === 'yellow' && count('red') === 0) return 0;
     if (count('blue') === 1) return 0;
     if (count('yellow') > 1) return n - 1;
     return 1;
   } else if (n === 5) {
     if (wires[n - 1] === 'black' && isOdd) return 3;
-    if (indicatorLit && count('red') === 1) return 1;
     if (count('red') === 1 && count('yellow') > 1) return 0;
     if (count('black') === 0) return 1;
     return 0;
   } else {
     // 6 wires
     if (count('yellow') === 0 && isOdd) return 2;
-    if (indicatorLit && count('white') > 2) return 0;
     if (count('yellow') === 1 && count('white') > 1) return 3;
     if (count('red') === 0) return n - 1;
     return 3;
@@ -121,24 +118,34 @@ export function generateMission(difficulty: 'rookie' | 'veteran' | 'impossible' 
   const wireLength = pick(wireCounts);
   const colorsPool: WireColor[] = ['red', 'blue', 'yellow', 'white', 'black'];
   const wires: WireColor[] = Array.from({ length: wireLength }, () => pick(colorsPool));
-  const correctWireIndex = calculateWireSolution(wires, serial, indicatorLit);
+  const correctWireIndex = calculateWireSolution(wires, serial);
+
+  // Check if last numerical digit of serial is odd or even
+  const lastChar = serial.slice(-1);
+  const lastDigit = parseInt(lastChar.match(/\d/) ? lastChar : serial.split('').filter(c => /\d/.test(c)).pop() || '0', 10);
+  const isOdd = lastDigit % 2 !== 0;
 
   // Glyph module setup
   // Pick one column, choose 4 glyphs from it, shuffle for operative
   const chosenCol = pick(GLYPH_COLUMNS);
   const sampledGlyphs = shuffle(chosenCol).slice(0, 4);
-  // Correct order is how they appear in chosenCol
-  const correctOrder = chosenCol.filter(g => sampledGlyphs.includes(g));
+  // Column appearance order (top to bottom)
+  const topToBottomOrder = chosenCol.filter(g => sampledGlyphs.includes(g));
+  // If last digit of serial is ODD -> top to bottom; if EVEN -> bottom to top
+  const correctOrder = isOdd ? topToBottomOrder : [...topToBottomOrder].reverse();
 
-  // Frequency module setup
-  // Frequency based on indicator & battery count
+  // Expanded Frequency Matrix (split by indicator tag, lit/unlit state, and battery count)
   const freqTable: Record<string, number> = {
-    'FRK-1': 320, 'FRK-2': 440, 'FRK-3': 560,
-    'CAR-1': 380, 'CAR-2': 500, 'CAR-3': 640,
-    'NSA-1': 420, 'NSA-2': 580, 'NSA-3': 720,
-    'SIG-1': 480, 'SIG-2': 620, 'SIG-3': 760,
+    'FRK-LIT-1': 440, 'FRK-LIT-2': 560, 'FRK-LIT-3': 680,
+    'FRK-OFF-1': 320, 'FRK-OFF-2': 420, 'FRK-OFF-3': 520,
+    'CAR-LIT-1': 460, 'CAR-LIT-2': 580, 'CAR-LIT-3': 700,
+    'CAR-OFF-1': 340, 'CAR-OFF-2': 440, 'CAR-OFF-3': 540,
+    'NSA-LIT-1': 480, 'NSA-LIT-2': 620, 'NSA-LIT-3': 740,
+    'NSA-OFF-1': 360, 'NSA-OFF-2': 480, 'NSA-OFF-3': 600,
+    'SIG-LIT-1': 520, 'SIG-LIT-2': 660, 'SIG-LIT-3': 780,
+    'SIG-OFF-1': 380, 'SIG-OFF-2': 500, 'SIG-OFF-3': 640,
   };
-  const key = `${indicatorLabel}-${batteryCount}`;
+  const key = `${indicatorLabel}-${indicatorLit ? 'LIT' : 'OFF'}-${batteryCount}`;
   const targetFrequency = freqTable[key] || 500;
 
   // Memory module setup (3 stages)

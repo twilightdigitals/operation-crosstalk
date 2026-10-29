@@ -58,8 +58,8 @@ Vite is configured with `--host`, which will print out your local network IP in 
 ## 🧩 The 4 Defusal Modules
 
 * **Mod 01: Wire Loom** (4 to 6 colored wires; logic based on serial number and wire counts).
-* **Mod 02: Glyph Matrix** (4 mysterious espionage runes; must be pressed in the column order given in the Analyst's manual).
-* **Mod 03: Radio Oscilloscope** (Adjust frequency slider to match target MHz using Indicator code & Battery count).
+* **Mod 02: Glyph Matrix** (4 mysterious espionage runes; entered top-to-bottom if serial ends in ODD, or bottom-to-top if EVEN).
+* **Mod 03: Radio Oscilloscope** (Adjust frequency slider to match target MHz using the expanded matrix of Indicator Tag, LIT/OFF status, and Battery count).
 * **Mod 04: Memory Core** (3 sequential stages; requires remembering button positions and labels from previous stages).
 
 ---

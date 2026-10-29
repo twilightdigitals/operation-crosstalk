@@ -162,7 +162,6 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               <span className="font-bold text-amber-300 block mb-1">IF THERE ARE 4 WIRES:</span>
               <ol className="list-decimal pl-4 space-y-1 text-stone-300">
                 <li>If more than one red wire AND the serial number ends with an odd digit, cut the <strong className="text-white">last red wire</strong>.</li>
-                <li>Otherwise, if the indicator LED is <strong className="text-amber-400">LIT</strong> AND there are no red wires, cut the <strong className="text-white">third wire</strong>.</li>
                 <li>Otherwise, if the last wire is yellow AND there are no red wires, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if there is exactly one blue wire, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if there is more than one yellow wire, cut the <strong className="text-white">last wire</strong>.</li>
@@ -175,7 +174,6 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               <span className="font-bold text-amber-300 block mb-1">IF THERE ARE 5 WIRES:</span>
               <ol className="list-decimal pl-4 space-y-1 text-stone-300">
                 <li>If the last wire is black AND the serial ends with an odd digit, cut the <strong className="text-white">fourth wire</strong>.</li>
-                <li>Otherwise, if the indicator LED is <strong className="text-amber-400">LIT</strong> AND exactly one red wire, cut the <strong className="text-white">second wire</strong>.</li>
                 <li>Otherwise, if exactly one red wire AND more than one yellow wire, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if there are no black wires, cut the <strong className="text-white">second wire</strong>.</li>
                 <li>Otherwise, cut the <strong className="text-white">first wire</strong>.</li>
@@ -187,7 +185,6 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               <span className="font-bold text-amber-300 block mb-1">IF THERE ARE 6 WIRES:</span>
               <ol className="list-decimal pl-4 space-y-1 text-stone-300">
                 <li>If there are no yellow wires AND serial ends with odd digit, cut the <strong className="text-white">third wire</strong>.</li>
-                <li>Otherwise, if the indicator LED is <strong className="text-amber-400">LIT</strong> AND more than two white wires, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if exactly one yellow wire AND more than one white wire, cut the <strong className="text-white">fourth wire</strong>.</li>
                 <li>Otherwise, if there are no red wires, cut the <strong className="text-white">last wire</strong>.</li>
                 <li>Otherwise, cut the <strong className="text-white">fourth wire</strong>.</li>
@@ -204,10 +201,20 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
             Section 2: Glyph Columns
           </h3>
           <p className="text-[11px] text-stone-400">
-            Only <strong className="text-white">one column below</strong> contains all four symbols present on the Operative's keypad. Have the Operative tap their four glyphs in the <strong className="text-amber-300">top-to-bottom order</strong> they appear in that column:
+            Only <strong className="text-white">one column below</strong> contains all four symbols present on the Operative's keypad.
           </p>
 
-          <div className="grid grid-cols-4 gap-2 pt-2">
+          <div className="p-3 bg-stone-900/90 border border-amber-800/60 rounded-lg text-[11px] space-y-1">
+            <span className="font-bold text-amber-300 block mb-0.5">SERIAL NUMBER DIRECTION RULE:</span>
+            <p>
+              • If the last digit of the Serial Number is <strong className="text-emerald-400">ODD</strong>: Tap glyphs from <strong className="text-white">TOP to BOTTOM</strong>.
+            </p>
+            <p>
+              • If the last digit of the Serial Number is <strong className="text-cyan-400">EVEN</strong>: Tap glyphs in reverse from <strong className="text-white">BOTTOM to TOP</strong>.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 pt-1">
             {GLYPH_COLUMNS.map((col, colIdx) => (
               <div
                 key={colIdx}
@@ -235,14 +242,14 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
             Section 3: Radio Resonance Matrix
           </h3>
           <p className="text-[11px] text-stone-400">
-            Find the target broadcast frequency (in MHz) using the Operative's chassis <strong className="text-white">Indicator Tag</strong> and <strong className="text-white">Battery Count</strong>:
+            Find the target broadcast frequency (in MHz) using the Operative's chassis <strong className="text-white">Indicator Tag</strong>, its <strong className="text-amber-400">LIT / OFF</strong> state, and <strong className="text-white">Battery Count</strong>:
           </p>
 
           <div className="overflow-x-auto">
             <table className="w-full text-center border-collapse border border-stone-800 text-[11px]">
               <thead>
                 <tr className="bg-stone-900 text-stone-400">
-                  <th className="border border-stone-800 p-2 text-left">TAG</th>
+                  <th className="border border-stone-800 p-2 text-left">TAG & STATE</th>
                   <th className="border border-stone-800 p-2">1 BATTERY</th>
                   <th className="border border-stone-800 p-2">2 BATTERIES</th>
                   <th className="border border-stone-800 p-2">3 BATTERIES</th>
@@ -250,28 +257,52 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               </thead>
               <tbody>
                 <tr>
-                  <td className="border border-stone-800 p-2 font-bold text-left text-amber-400">FRK</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">320 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">440 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">560 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-amber-300">FRK (LIT)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">440 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">560 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">680 MHz</td>
                 </tr>
                 <tr className="bg-stone-900/40">
-                  <td className="border border-stone-800 p-2 font-bold text-left text-amber-400">CAR</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">380 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">500 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">640 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-stone-400">FRK (OFF)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">320 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">420 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">520 MHz</td>
                 </tr>
                 <tr>
-                  <td className="border border-stone-800 p-2 font-bold text-left text-amber-400">NSA</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">420 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">580 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">720 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-amber-300">CAR (LIT)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">460 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">580 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">700 MHz</td>
                 </tr>
                 <tr className="bg-stone-900/40">
-                  <td className="border border-stone-800 p-2 font-bold text-left text-amber-400">SIG</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">480 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">620 MHz</td>
-                  <td className="border border-stone-800 p-2 font-mono text-cyan-300">760 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-stone-400">CAR (OFF)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">340 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">440 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">540 MHz</td>
+                </tr>
+                <tr>
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-amber-300">NSA (LIT)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">480 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">620 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">740 MHz</td>
+                </tr>
+                <tr className="bg-stone-900/40">
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-stone-400">NSA (OFF)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">360 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">480 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">600 MHz</td>
+                </tr>
+                <tr>
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-amber-300">SIG (LIT)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">520 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">660 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">780 MHz</td>
+                </tr>
+                <tr className="bg-stone-900/40">
+                  <td className="border border-stone-800 p-1.5 font-bold text-left text-stone-400">SIG (OFF)</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">380 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">500 MHz</td>
+                  <td className="border border-stone-800 p-1.5 font-mono text-cyan-300">640 MHz</td>
                 </tr>
               </tbody>
             </table>
