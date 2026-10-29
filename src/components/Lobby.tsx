@@ -148,7 +148,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         : 'bg-zinc-950 border-zinc-800 text-zinc-500'
                     }`}
                   >
-                    {diff === 'rookie' ? '4m 00s' : diff === 'veteran' ? '3m 00s' : '2m 00s'}
+                    {diff === 'rookie' ? '5m 00s' : diff === 'veteran' ? '4m 00s' : '3m 00s'}
                   </button>
                 ))}
               </div>

@@ -7,6 +7,7 @@ import {
 import { network, type GameRole, type PeerMessage } from './services/p2p';
 import { sound } from './services/sound';
 import { Lobby } from './components/Lobby';
+import { WaitingLobby } from './components/WaitingLobby';
 import { OperativeConsole } from './components/OperativeConsole';
 import { AnalystManual } from './components/AnalystManual';
 import { GameOverModal } from './components/GameOverModal';
@@ -40,6 +41,22 @@ export function App() {
       },
       (connectedStatus) => {
         setIsConnected(connectedStatus);
+        if (connectedStatus) {
+          sound.moduleSolved(); // Link chime
+          if (network.isHost) {
+            setGameState((prev) => {
+              if (prev && prev.status === 'waiting') {
+                const activeState: MissionState = {
+                  ...prev,
+                  status: 'active',
+                };
+                network.send({ type: 'STATE_SYNC', state: activeState });
+                return activeState;
+              }
+              return prev;
+            });
+          }
+        }
       }
     );
 
@@ -322,7 +339,7 @@ export function App() {
     ];
 
     const newMission = generateMission(diff);
-    newMission.status = 'active';
+    newMission.status = 'waiting';
 
     try {
       await network.createRoom(code, newMission);
@@ -394,6 +411,18 @@ export function App() {
         onStartSoloTest={handleStartSoloTest}
         isConnecting={isConnecting}
         connectionError={connectionError}
+      />
+    );
+  }
+
+  // Waiting Room for Host until Partner Connects
+  if (gameState.status === 'waiting' && !isSoloMode) {
+    return (
+      <WaitingLobby
+        roomCode={roomCode}
+        role={role}
+        timerMinutes={Math.floor(gameState.totalTimeSeconds / 60)}
+        onCancel={handleReturnToLobby}
       />
     );
   }

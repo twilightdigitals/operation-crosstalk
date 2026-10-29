@@ -51,7 +51,7 @@ export interface MissionState {
   remainingSeconds: number;
   strikes: number;
   maxStrikes: number;
-  status: 'briefing' | 'active' | 'victory' | 'detonated';
+  status: 'waiting' | 'active' | 'victory' | 'detonated';
   modules: {
     wires: WireModuleState;
     glyphs: GlyphModuleState;
@@ -144,7 +144,7 @@ export function generateMission(difficulty: 'rookie' | 'veteran' | 'impossible' 
     { displayDigit: pick([1, 2, 3, 4]), buttonLabels: shuffle([1, 2, 3, 4]) },
   ];
 
-  const totalTimeSeconds = difficulty === 'rookie' ? 240 : difficulty === 'veteran' ? 180 : 120;
+  const totalTimeSeconds = difficulty === 'rookie' ? 300 : difficulty === 'veteran' ? 240 : 180;
 
   return {
     missionId: Math.random().toString(36).substring(2, 6).toUpperCase(),
@@ -158,7 +158,7 @@ export function generateMission(difficulty: 'rookie' | 'veteran' | 'impossible' 
     remainingSeconds: totalTimeSeconds,
     strikes: 0,
     maxStrikes: 3,
-    status: 'briefing',
+    status: 'waiting',
     modules: {
       wires: {
         type: 'wires',
