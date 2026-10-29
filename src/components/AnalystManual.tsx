@@ -162,6 +162,7 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               <span className="font-bold text-amber-300 block mb-1">IF THERE ARE 4 WIRES:</span>
               <ol className="list-decimal pl-4 space-y-1 text-stone-300">
                 <li>If more than one red wire AND the serial number ends with an odd digit, cut the <strong className="text-white">last red wire</strong>.</li>
+                <li>Otherwise, if the indicator LED is <strong className="text-amber-400">LIT</strong> AND there are no red wires, cut the <strong className="text-white">third wire</strong>.</li>
                 <li>Otherwise, if the last wire is yellow AND there are no red wires, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if there is exactly one blue wire, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if there is more than one yellow wire, cut the <strong className="text-white">last wire</strong>.</li>
@@ -174,6 +175,7 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               <span className="font-bold text-amber-300 block mb-1">IF THERE ARE 5 WIRES:</span>
               <ol className="list-decimal pl-4 space-y-1 text-stone-300">
                 <li>If the last wire is black AND the serial ends with an odd digit, cut the <strong className="text-white">fourth wire</strong>.</li>
+                <li>Otherwise, if the indicator LED is <strong className="text-amber-400">LIT</strong> AND exactly one red wire, cut the <strong className="text-white">second wire</strong>.</li>
                 <li>Otherwise, if exactly one red wire AND more than one yellow wire, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if there are no black wires, cut the <strong className="text-white">second wire</strong>.</li>
                 <li>Otherwise, cut the <strong className="text-white">first wire</strong>.</li>
@@ -185,6 +187,7 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
               <span className="font-bold text-amber-300 block mb-1">IF THERE ARE 6 WIRES:</span>
               <ol className="list-decimal pl-4 space-y-1 text-stone-300">
                 <li>If there are no yellow wires AND serial ends with odd digit, cut the <strong className="text-white">third wire</strong>.</li>
+                <li>Otherwise, if the indicator LED is <strong className="text-amber-400">LIT</strong> AND more than two white wires, cut the <strong className="text-white">first wire</strong>.</li>
                 <li>Otherwise, if exactly one yellow wire AND more than one white wire, cut the <strong className="text-white">fourth wire</strong>.</li>
                 <li>Otherwise, if there are no red wires, cut the <strong className="text-white">last wire</strong>.</li>
                 <li>Otherwise, cut the <strong className="text-white">fourth wire</strong>.</li>

@@ -69,7 +69,7 @@ export const GLYPH_COLUMNS = [
 ];
 
 // Helper to determine wire solution
-function calculateWireSolution(wires: WireColor[], serialNumber: string): number {
+function calculateWireSolution(wires: WireColor[], serialNumber: string, indicatorLit: boolean): number {
   const lastChar = serialNumber.slice(-1);
   const lastDigit = parseInt(lastChar.match(/\d/) ? lastChar : serialNumber.split('').filter(c => /\d/.test(c)).pop() || '0', 10);
   const isOdd = lastDigit % 2 !== 0;
@@ -81,18 +81,21 @@ function calculateWireSolution(wires: WireColor[], serialNumber: string): number
 
   if (n === 4) {
     if (count('red') > 1 && isOdd) return lastIndexOf('red');
+    if (indicatorLit && count('red') === 0) return 2;
     if (wires[n - 1] === 'yellow' && count('red') === 0) return 0;
     if (count('blue') === 1) return 0;
     if (count('yellow') > 1) return n - 1;
     return 1;
   } else if (n === 5) {
     if (wires[n - 1] === 'black' && isOdd) return 3;
+    if (indicatorLit && count('red') === 1) return 1;
     if (count('red') === 1 && count('yellow') > 1) return 0;
     if (count('black') === 0) return 1;
     return 0;
   } else {
     // 6 wires
     if (count('yellow') === 0 && isOdd) return 2;
+    if (indicatorLit && count('white') > 2) return 0;
     if (count('yellow') === 1 && count('white') > 1) return 3;
     if (count('red') === 0) return n - 1;
     return 3;
@@ -117,7 +120,7 @@ export function generateMission(difficulty: 'rookie' | 'veteran' | 'impossible' 
   const wireLength = pick(wireCounts);
   const colorsPool: WireColor[] = ['red', 'blue', 'yellow', 'white', 'black'];
   const wires: WireColor[] = Array.from({ length: wireLength }, () => pick(colorsPool));
-  const correctWireIndex = calculateWireSolution(wires, serial);
+  const correctWireIndex = calculateWireSolution(wires, serial, indicatorLit);
 
   // Glyph module setup
   // Pick one column, choose 4 glyphs from it, shuffle for operative
