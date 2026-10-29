@@ -271,8 +271,16 @@ export const Lobby: React.FC<LobbyProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="text-center text-[10px] text-zinc-600 tracking-wider">
-        OPERATION CROSSTALK • V1.0 PROTOCOL • TWO-PLAYER PASSION PROJECT
+      <div className="text-center text-[10px] text-zinc-500 tracking-wider">
+        <span>OPERATION CROSSTALK • V1.0 PROTOCOL • </span>
+        <a
+          href="https://github.com/shazomii/operation-crosstalk"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-amber-400 transition-colors underline underline-offset-2"
+        >
+          built with ❤️ by Shazomii
+        </a>
       </div>
     </div>
   );

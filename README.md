@@ -1,6 +1,7 @@
 # 🕵️‍♂️ Operation: CrossTalk
 
 > **Two Phones. Asymmetric Mystery. Zero Peeking.**
+> Built with ❤️ by [Shazomii](https://github.com/shazomii/operation-crosstalk)
 > An asymmetric 2-player cooperative escape game designed for couples, friends, and family.
 
 ---
