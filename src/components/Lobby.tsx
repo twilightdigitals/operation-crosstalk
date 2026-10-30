@@ -86,7 +86,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             {showHowToPlay && (
               <div className="mt-4 p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-xs space-y-2 text-zinc-300">
                 <span className="font-bold text-amber-400 block mb-1">HOW TO PLAY TOGETHER:</span>
-                <p>1. <strong>Player 1:</strong> Tap &ldquo;HOST MISSION&rdquo;, pick your role, and tell your partner the 4-letter room code.</p>
+                <p>1. <strong>Player 1:</strong> Tap &ldquo;HOST MISSION&rdquo;, pick your role, and tell your partner the 5-letter room code.</p>
                 <p>2. <strong>Player 2:</strong> Tap &ldquo;JOIN MISSION&rdquo;, enter the room code, and pick the opposite role.</p>
                 <p>3. <strong>Golden Rule:</strong> Sit on the couch together, but <span className="text-red-400 font-bold">NEVER look at each other&apos;s phone!</span> Only communicate by talking out loud.</p>
               </div>
@@ -196,13 +196,13 @@ export const Lobby: React.FC<LobbyProps> = ({
 
             {/* Room Code Input */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-zinc-400">ENTER 4-LETTER ROOM CODE:</span>
+              <span className="text-[11px] text-zinc-400">ENTER 5-LETTER ROOM CODE:</span>
               <input
                 type="text"
-                maxLength={4}
+                maxLength={5}
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="E.G. HAWK"
+                placeholder="E.G. KXTRA"
                 className="w-full bg-zinc-950 border-2 border-zinc-700 focus:border-amber-400 rounded-xl py-3 px-4 text-center font-mono text-2xl font-black text-amber-300 tracking-widest uppercase outline-none"
               />
             </div>
@@ -255,10 +255,10 @@ export const Lobby: React.FC<LobbyProps> = ({
               </button>
               <button
                 type="button"
-                disabled={isConnecting || joinCode.length < 4}
+                disabled={isConnecting || joinCode.length < 5}
                 onClick={() => onJoinRoom(joinCode, selectedRole)}
                 className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg ${
-                  joinCode.length === 4
+                  joinCode.length === 5
                     ? 'bg-amber-600 hover:bg-amber-500 active:scale-95 text-white'
                     : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
                 }`}

@@ -335,9 +335,9 @@ export function App() {
   ) => {
     setIsConnecting(true);
     setConnectionError(null);
-    const code = ['HAWK', 'LION', 'ECHO', 'BOLT', 'WOLF', 'RUBY', 'STAR', 'JAZZ'][
-      Math.floor(Math.random() * 8)
-    ];
+    // Generate 5 random clean uppercase letters (excluding confusing characters like O, I, 0, 1)
+    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const code = Array.from({ length: 5 }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
 
     const newMission = generateMission(diff);
     newMission.status = 'waiting';

@@ -40,8 +40,8 @@ Vite is configured with `--host`, which will print out your local network IP in 
 ### 2. Connect Your Phones
 1. Connect both phones to your home Wi-Fi network.
 2. Open Safari / Chrome on Phone 1 and Phone 2 to `http://192.168.1.XX:5173` (or scan the terminal QR code).
-3. **Phone 1 (Player 1):** Tap **"HOST MISSION"**, choose your role, and your phone displays a dedicated **Waiting Screen** with the 4-letter room code (e.g. `HAWK`). **The countdown timer stays paused.**
-4. **Phone 2 (Player 2):** Tap **"JOIN MISSION"**, type in `HAWK`, and select your role.
+3. **Phone 1 (Player 1):** Tap **"HOST MISSION"**, choose your role, and your phone displays a dedicated **Waiting Screen** with the 5-letter room code (e.g. `KXTRA`). **The countdown timer stays paused.**
+4. **Phone 2 (Player 2):** Tap **"JOIN MISSION"**, type in `KXTRA`, and select your role.
 5. **Auto-Sync:** The second Phone 2 connects, both phones play a link confirmation chime, the mission activates simultaneously, and the countdown timer begins!
 
 ---

@@ -11,6 +11,35 @@ export type PeerMessage =
   | { type: 'ROLE_SWAP' }
   | { type: 'PING' };
 
+// High-reliability STUN & TURN configuration to guarantee cellular (carrier NAT) & cross-network traversal
+export const PEER_CONFIG = {
+  debug: 1,
+  config: {
+    iceServers: [
+      // Standard Google STUN
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      // OpenRelay Free Community TURN / STUN Servers (Metered)
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+    ],
+  },
+};
+
 export class MultiplayerNetwork {
   private peer: Peer | null = null;
   private conn: DataConnection | null = null;
@@ -32,7 +61,7 @@ export class MultiplayerNetwork {
     this.onConnectionStatusCallback = onStatus;
   }
 
-  // Host a new room with a 4-letter code
+  // Host a new room with a 5-letter code
   public createRoom(code: string, initialState: MissionState): Promise<string> {
     return new Promise((resolve, reject) => {
       this.disconnect();
@@ -41,9 +70,7 @@ export class MultiplayerNetwork {
       const peerId = `crosstalk-v1-${this.roomCode}`;
 
       try {
-        this.peer = new Peer(peerId, {
-          debug: 1,
-        });
+        this.peer = new Peer(peerId, PEER_CONFIG);
 
         this.peer.on('open', (id) => {
           resolve(id);
@@ -55,11 +82,10 @@ export class MultiplayerNetwork {
           // Send initial state to newly connected client
           setTimeout(() => {
             this.send({ type: 'STATE_SYNC', state: initialState });
-          }, 300);
+          }, 400);
         });
 
         this.peer.on('error', (err) => {
-          // If ID is already taken, reject
           reject(err);
         });
       } catch (e) {
@@ -77,12 +103,12 @@ export class MultiplayerNetwork {
       const targetHostId = `crosstalk-v1-${this.roomCode}`;
 
       try {
-        this.peer = new Peer({
-          debug: 1,
-        });
+        this.peer = new Peer(PEER_CONFIG);
 
         this.peer.on('open', () => {
-          const connection = this.peer!.connect(targetHostId, { reliable: true });
+          const connection = this.peer!.connect(targetHostId, {
+            reliable: true,
+          });
           this.conn = connection;
 
           connection.on('open', () => {
