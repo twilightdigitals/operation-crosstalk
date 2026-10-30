@@ -37,11 +37,16 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   const secondsUsed = timeUsed % 60;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 font-mono select-none">
-      <div className={`w-full max-w-sm rounded-2xl border-2 p-6 flex flex-col items-center text-center shadow-2xl ${
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 font-mono select-none overflow-hidden">
+      {/* Dramatic Explosion Shockwave Flash */}
+      {!isVictory && (
+        <div className="absolute inset-0 blast-flash pointer-events-none z-10" />
+      )}
+
+      <div className={`w-full max-w-sm rounded-2xl border-2 p-6 flex flex-col items-center text-center shadow-2xl relative z-20 ${
         isVictory
           ? 'bg-zinc-950 border-emerald-500/80 shadow-[0_0_30px_rgba(16,185,129,0.4)]'
-          : 'bg-zinc-950 border-red-600/80 shadow-[0_0_30px_rgba(239,68,68,0.5)]'
+          : 'bg-zinc-950 border-red-600/80 shadow-[0_0_40px_rgba(239,68,68,0.7)] detonation-shake'
       }`}>
         {/* Big Icon */}
         <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-4 border-2 ${

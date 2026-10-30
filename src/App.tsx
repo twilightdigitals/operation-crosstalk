@@ -287,7 +287,7 @@ export function App() {
           };
         }
 
-        sound.tick(nextSeconds <= 30);
+        sound.tick(nextSeconds);
         return {
           ...prev,
           remainingSeconds: nextSeconds,

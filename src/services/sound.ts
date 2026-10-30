@@ -23,28 +23,82 @@ class SoundSystem {
     return this.isMuted;
   }
 
-  // Tense clock tick
-  public tick(fast = false) {
+  // Realistic Electronic Bomb Timer Beep (Authentic Hollywood / Tactical Piezo Beep)
+  public tick(remainingSecondsOrFast: number | boolean = 60) {
     if (this.isMuted) return;
     try {
       this.initCtx();
       if (!this.ctx) return;
 
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const remaining = typeof remainingSecondsOrFast === 'boolean'
+        ? (remainingSecondsOrFast ? 15 : 60)
+        : remainingSecondsOrFast;
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(fast ? 1200 : 880, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.04);
+      const now = this.ctx.currentTime;
+      const isCritical = remaining <= 10;
+      const isUrgent = remaining <= 30;
 
-      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+      // Authentic tactical frequency: standard movie bomb timer is ~2093Hz (C7), sharpening under stress
+      const baseFreq = isCritical ? 2793.83 : isUrgent ? 2349.32 : 2093.0;
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      const playBeep = (timeOffset: number, duration: number, volume: number) => {
+        const t = now + timeOffset;
 
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
+        // Primary high-frequency tone
+        const osc1 = this.ctx!.createOscillator();
+        const osc2 = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        const filter = this.ctx!.createBiquadFilter();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(baseFreq, t);
+
+        // Harmonic overtone giving that sharp, metallic piezo buzzer bite
+        osc2.type = 'square';
+        osc2.frequency.setValueAtTime(baseFreq * 2, t);
+
+        // Highpass filter removes low-end pop and gives clean digital edge
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(1200, t);
+
+        // Snappy envelope: instant 1ms attack, crisp sustain, fast decay
+        gain.gain.setValueAtTime(0.001, t);
+        gain.gain.linearRampToValueAtTime(volume, t + 0.002);
+        gain.gain.setValueAtTime(volume, t + duration * 0.6);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+
+        const osc2Gain = this.ctx!.createGain();
+        osc2Gain.gain.setValueAtTime(volume * 0.22, t);
+        osc2Gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+
+        osc1.connect(gain);
+        gain.connect(filter);
+
+        osc2.connect(osc2Gain);
+        osc2Gain.connect(filter);
+
+        filter.connect(this.ctx!.destination);
+
+        osc1.start(t);
+        osc1.stop(t + duration);
+        osc2.start(t);
+        osc2.stop(t + duration);
+      };
+
+      if (isCritical) {
+        // Frantic double-beep ("pip-pip") for final 10 seconds!
+        playBeep(0, 0.035, 0.24);
+        playBeep(0.075, 0.045, 0.26);
+        this.vibrate([25, 45, 25]);
+      } else if (isUrgent) {
+        // Higher pitched urgent single beep
+        playBeep(0, 0.045, 0.22);
+        this.vibrate(20);
+      } else {
+        // Standard clinical digital timer beep
+        playBeep(0, 0.04, 0.18);
+        this.vibrate(10);
+      }
     } catch {
       // AudioContext policy fallback
     }
@@ -156,29 +210,80 @@ class SoundSystem {
     } catch {}
   }
 
-  // Dramatic Explosion / Detonation
+  // Dramatic Cinematic Explosion / Detonation (Multi-Layer Shockwave, Blast Crack & Debris Rumble)
   public explode() {
     if (this.isMuted) return;
     try {
       this.initCtx();
       if (!this.ctx) return;
 
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const now = this.ctx.currentTime;
 
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.8);
+      // 1. Heavy Sub-Bass Shockwave (Physical chest-thump thud)
+      const subOsc = this.ctx.createOscillator();
+      const subGain = this.ctx.createGain();
 
-      gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.8);
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(170, now);
+      subOsc.frequency.exponentialRampToValueAtTime(32, now + 1.8);
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      subGain.gain.setValueAtTime(0.9, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
 
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.8);
-      this.vibrate([300, 100, 500]);
+      subOsc.connect(subGain);
+      subGain.connect(this.ctx.destination);
+      subOsc.start(now);
+      subOsc.stop(now + 1.8);
+
+      // 2. High-Impact Detonation Blast Crack (Overdriven transient supersonic crack)
+      const crackOsc = this.ctx.createOscillator();
+      const crackGain = this.ctx.createGain();
+
+      crackOsc.type = 'sawtooth';
+      crackOsc.frequency.setValueAtTime(500, now);
+      crackOsc.frequency.exponentialRampToValueAtTime(35, now + 0.16);
+
+      crackGain.gain.setValueAtTime(0.85, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+
+      crackOsc.connect(crackGain);
+      crackGain.connect(this.ctx.destination);
+      crackOsc.start(now);
+      crackOsc.stop(now + 0.18);
+
+      // 3. Volumetric Fireball Roar & Debris Rumble (Filtered White Noise Buffer)
+      const sampleRate = this.ctx.sampleRate;
+      const bufferSize = Math.floor(sampleRate * 2.5);
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = this.ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+
+      // Lowpass resonant filter sweeps from blazing initial fireball (1600Hz) down to rumbling rubble (55Hz)
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.Q.setValueAtTime(2.8, now);
+      filter.frequency.setValueAtTime(1600, now);
+      filter.frequency.exponentialRampToValueAtTime(55, now + 2.4);
+
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.8, now);
+      noiseGain.gain.linearRampToValueAtTime(0.7, now + 0.2);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+
+      whiteNoise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(this.ctx.destination);
+
+      whiteNoise.start(now);
+      whiteNoise.stop(now + 2.5);
+
+      // Violent multi-stage haptic blast
+      this.vibrate([180, 40, 350, 60, 200, 50, 450]);
     } catch {}
   }
 
