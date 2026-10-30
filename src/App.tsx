@@ -288,6 +288,7 @@ export function App() {
         }
 
         sound.tick(nextSeconds);
+        sound.updateMusic(nextSeconds);
         return {
           ...prev,
           remainingSeconds: nextSeconds,
@@ -296,6 +297,19 @@ export function App() {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, [gameState?.status]);
+
+  // Espionage Soundtrack: plays strictly during active gameplay, stops on victory/detonated/lobby
+  useEffect(() => {
+    if (gameState?.status === 'active') {
+      sound.startMusic(gameState.remainingSeconds);
+    } else {
+      sound.stopMusic();
+    }
+
+    return () => {
+      sound.stopMusic();
+    };
   }, [gameState?.status]);
 
   // Operative Action 1: Wire Cut
@@ -643,6 +657,7 @@ export function App() {
   };
 
   const handleReturnToLobby = () => {
+    sound.stopMusic();
     network.disconnect();
     setGameState(null);
     setIsSoloMode(false);

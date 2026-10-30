@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { type MissionState, GLYPH_COLUMNS } from '../services/gameEngine';
-import { BookOpen, Scissors, KeyRound, Radio, Cpu, FileText, Wifi, AlertTriangle } from 'lucide-react';
+import { BookOpen, Scissors, KeyRound, Radio, Cpu, FileText, Wifi, AlertTriangle, Volume2, VolumeX } from 'lucide-react';
+import { sound } from '../services/sound';
 
 interface AnalystManualProps {
   state: MissionState;
@@ -16,6 +17,12 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
   isSingleDeviceMode,
 }) => {
   const [activeTab, setActiveTab] = useState<'wires' | 'glyphs' | 'frequency' | 'memory' | 'overview'>('overview');
+  const [isMuted, setIsMuted] = React.useState(sound.getMuted());
+
+  const handleToggleMute = () => {
+    const muted = sound.toggleMute();
+    setIsMuted(muted);
+  };
 
   const minutes = Math.floor(state.remainingSeconds / 60);
   const seconds = state.remainingSeconds % 60;
@@ -29,9 +36,18 @@ export const AnalystManual: React.FC<AnalystManualProps> = ({
           <BookOpen className="w-4 h-4 text-amber-500" />
           <span className="font-bold tracking-widest text-amber-400">DEFUSAL FIELD MANUAL</span>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-stone-400">
-          <Wifi className={`w-3.5 h-3.5 ${isConnected ? 'text-emerald-400' : 'text-amber-500 animate-pulse'}`} />
-          <span>{isConnected ? 'ONLINE' : 'STANDALONE'}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-[11px] text-stone-400">
+            <Wifi className={`w-3.5 h-3.5 ${isConnected ? 'text-emerald-400' : 'text-amber-500 animate-pulse'}`} />
+            <span>{isConnected ? 'ONLINE' : 'STANDALONE'}</span>
+          </div>
+          <button
+            onClick={handleToggleMute}
+            className="p-1 rounded bg-stone-800 text-stone-300 hover:text-white"
+            title={isMuted ? 'Unmute Audio & Soundtrack' : 'Mute Audio & Soundtrack'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-stone-300" />}
+          </button>
         </div>
       </div>
 
