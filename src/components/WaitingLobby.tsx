@@ -95,12 +95,12 @@ export const WaitingLobby: React.FC<WaitingLobbyProps> = ({
       <div className="text-center text-[10px] text-zinc-500 tracking-wider flex flex-col gap-1 items-center">
         <span>Waiting for Phone 2 to establish peer-to-peer data link...</span>
         <a
-          href="https://github.com/shazomii/operation-crosstalk"
+          href="https://twilight.ng"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:text-amber-400 transition-colors underline underline-offset-2"
         >
-          built with ❤️ by Shazomii
+          A Twilight Web Product
         </a>
       </div>
     </div>
