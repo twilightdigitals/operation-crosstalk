@@ -9,6 +9,7 @@ export type GameRole = 'operative' | 'analyst';
 export type RealtimeAction =
   | { type: 'MISSION_INIT'; state: MissionState; sender: string }
   | { type: 'PARTNER_JOINED'; sender: string }
+  | { type: 'PARTNER_READY'; sender: string }
   | { type: 'WIRE_CUT'; wireIndex: number; isCorrect: boolean; sender: string }
   | { type: 'GLYPH_PRESSED'; glyph: string; nextPressed: string[]; isSolved: boolean; isError: boolean; sender: string }
   | { type: 'FREQUENCY_CHANGED'; frequency: number; sender: string }
@@ -53,7 +54,7 @@ export class SupabaseNetwork {
     return new Promise((resolve, reject) => {
       this.disconnect();
       this.isHost = true;
-      this.roomCode = code.toUpperCase();
+      this.roomCode = code.trim().toUpperCase().replace(/[^A-Z]/g, '');
 
       const channelName = `room_${this.roomCode}`;
       this.channel = supabase.channel(channelName, {
@@ -67,18 +68,23 @@ export class SupabaseNetwork {
           const action = payload as RealtimeAction;
           if (action.sender === this.clientId) return;
 
-          // When partner joins, acknowledge and send current mission state
-          if (action.type === 'PARTNER_JOINED') {
+          // When partner joins, acknowledge and send active mission state
+          if (action.type === 'PARTNER_JOINED' || action.type === 'PARTNER_READY') {
             this.connected = true;
             if (this.onConnectionStatusCallback) {
               this.onConnectionStatusCallback(true);
             }
-            // Send mission init payload to the joined partner
-            this.send({
-              type: 'MISSION_INIT',
-              state: initialState,
-              sender: this.clientId,
-            });
+            if (action.type === 'PARTNER_JOINED') {
+              // Send active mission state to the joining partner
+              this.send({
+                type: 'MISSION_INIT',
+                state: {
+                  ...initialState,
+                  status: 'active',
+                },
+                sender: this.clientId,
+              });
+            }
           }
 
           if (this.onActionCallback) {
@@ -100,7 +106,7 @@ export class SupabaseNetwork {
     return new Promise((resolve, reject) => {
       this.disconnect();
       this.isHost = false;
-      this.roomCode = code.toUpperCase();
+      this.roomCode = code.trim().toUpperCase().replace(/[^A-Z]/g, '');
 
       const channelName = `room_${this.roomCode}`;
       this.channel = supabase.channel(channelName, {
@@ -132,10 +138,16 @@ export class SupabaseNetwork {
             clearTimeout(timeout);
             if (pingInterval) clearInterval(pingInterval);
 
+            // Acknowledge back to Host so both phones immediately transition together
+            this.send({ type: 'PARTNER_READY', sender: this.clientId });
+
             if (this.onConnectionStatusCallback) {
               this.onConnectionStatusCallback(true);
             }
-            resolve(action.state);
+            resolve({
+              ...action.state,
+              status: 'active',
+            });
           }
 
           if (this.onActionCallback) {
@@ -151,7 +163,7 @@ export class SupabaseNetwork {
             };
 
             sendJoin();
-            pingInterval = window.setInterval(sendJoin, 1000);
+            pingInterval = window.setInterval(sendJoin, 600);
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             clearTimeout(timeout);
             if (pingInterval) clearInterval(pingInterval);

@@ -93,7 +93,7 @@ export const WaitingLobby: React.FC<WaitingLobbyProps> = ({
 
       {/* Footer */}
       <div className="text-center text-[10px] text-zinc-500 tracking-wider flex flex-col gap-1 items-center">
-        <span>Waiting for Phone 2 to establish peer-to-peer data link...</span>
+        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Waiting for partner to connect...</span>
         <a
           href="https://twilight.ng"
           target="_blank"

@@ -71,7 +71,18 @@ export function App() {
       if (!prev) return prev;
 
       switch (action.type) {
+        case 'PARTNER_JOINED':
+        case 'PARTNER_READY': {
+          sound.moduleSolved();
+          setIsConnected(true);
+          return {
+            ...prev,
+            status: 'active',
+          };
+        }
+
         case 'MISSION_INIT': {
+          setIsConnected(true);
           return {
             ...action.state,
             status: 'active',
@@ -584,13 +595,17 @@ export function App() {
   const handleJoinRoom = async (code: string, chosenRole: GameRole) => {
     setIsConnecting(true);
     setConnectionError(null);
+    const cleanCode = code.trim().toUpperCase().replace(/[^A-Z]/g, '');
 
     try {
-      const syncedState = await network.joinRoom(code);
-      setRoomCode(code.toUpperCase());
+      const syncedState = await network.joinRoom(cleanCode);
+      setRoomCode(cleanCode);
       setRole(chosenRole);
       setIsSoloMode(false);
-      setGameState(syncedState);
+      setGameState({
+        ...syncedState,
+        status: 'active',
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to connect to room. Check the code and try again.';
       setConnectionError(msg);

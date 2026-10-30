@@ -201,7 +201,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 type="text"
                 maxLength={5}
                 value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))}
                 placeholder="E.G. KXTRA"
                 className="w-full bg-zinc-950 border-2 border-zinc-700 focus:border-amber-400 rounded-xl py-3 px-4 text-center font-mono text-2xl font-black text-amber-300 tracking-widest uppercase outline-none"
               />
@@ -255,10 +255,10 @@ export const Lobby: React.FC<LobbyProps> = ({
               </button>
               <button
                 type="button"
-                disabled={isConnecting || joinCode.length < 5}
-                onClick={() => onJoinRoom(joinCode, selectedRole)}
+                disabled={isConnecting || joinCode.trim().length < 5}
+                onClick={() => onJoinRoom(joinCode.trim(), selectedRole)}
                 className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg ${
-                  joinCode.length === 5
+                  joinCode.trim().length === 5
                     ? 'bg-amber-600 hover:bg-amber-500 active:scale-95 text-white'
                     : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
                 }`}
