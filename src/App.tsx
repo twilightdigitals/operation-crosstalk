@@ -4,7 +4,7 @@ import {
   generateMission,
   getCorrectMemoryButton,
 } from './services/gameEngine';
-import { network, type GameRole, type PeerMessage } from './services/p2p';
+import { network, type GameRole, type RealtimeAction } from './services/p2p';
 import { sound } from './services/sound';
 import { Lobby } from './components/Lobby';
 import { WaitingLobby } from './components/WaitingLobby';
@@ -25,34 +25,33 @@ export function App() {
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
 
-  // Setup Network Listeners
+  // Check victory condition
+  const checkVictory = (state: MissionState): boolean => {
+    return (
+      state.modules.wires.solved &&
+      state.modules.glyphs.solved &&
+      state.modules.frequency.solved &&
+      state.modules.memory.solved
+    );
+  };
+
+  // Setup Supabase Realtime Action Listeners
   useEffect(() => {
     network.initialize(
-      (syncedState) => {
-        setGameState(syncedState);
-      },
-      (msg: PeerMessage) => {
-        if (msg.type === 'STRIKE_EVENT') {
-          sound.strike();
-        } else if (msg.type === 'SOLVED_EVENT') {
-          sound.moduleSolved();
-        } else if (msg.type === 'ROLE_SWAP') {
-          setRole((prev) => (prev === 'operative' ? 'analyst' : 'operative'));
-        }
+      (action: RealtimeAction) => {
+        handleRemoteAction(action);
       },
       (connectedStatus) => {
         setIsConnected(connectedStatus);
         if (connectedStatus) {
-          sound.moduleSolved(); // Link chime
+          sound.moduleSolved(); // Connection chime
           if (network.isHost) {
             setGameState((prev) => {
               if (prev && prev.status === 'waiting') {
-                const activeState: MissionState = {
+                return {
                   ...prev,
                   status: 'active',
                 };
-                network.send({ type: 'STATE_SYNC', state: activeState, sender: network.clientId });
-                return activeState;
               }
               return prev;
             });
@@ -66,22 +65,200 @@ export function App() {
     };
   }, []);
 
-  // Sync state helper to P2P network
-  const updateAndBroadcastState = (updater: (prev: MissionState) => MissionState) => {
+  // Handler for actions received from partner over Supabase Realtime
+  const handleRemoteAction = (action: RealtimeAction) => {
     setGameState((prev) => {
       if (!prev) return prev;
-      const next = updater(prev);
-      if (!isSoloMode && network.connected) {
-        network.send({ type: 'STATE_SYNC', state: next, sender: network.clientId });
+
+      switch (action.type) {
+        case 'MISSION_INIT': {
+          return {
+            ...action.state,
+            status: 'active',
+          };
+        }
+
+        case 'WIRE_CUT': {
+          sound.wireCut();
+          const cut = [...prev.modules.wires.cutWires];
+          cut[action.wireIndex] = true;
+
+          if (action.isCorrect) {
+            sound.moduleSolved();
+            const next: MissionState = {
+              ...prev,
+              modules: {
+                ...prev.modules,
+                wires: {
+                  ...prev.modules.wires,
+                  cutWires: cut,
+                  solved: true,
+                },
+              },
+            };
+            if (checkVictory(next)) next.status = 'victory';
+            return next;
+          } else {
+            sound.strike();
+            const newStrikes = prev.strikes + 1;
+            return {
+              ...prev,
+              strikes: newStrikes,
+              status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+              modules: {
+                ...prev.modules,
+                wires: {
+                  ...prev.modules.wires,
+                  cutWires: cut,
+                },
+              },
+            };
+          }
+        }
+
+        case 'GLYPH_PRESSED': {
+          if (action.isError) {
+            sound.strike();
+            const newStrikes = prev.strikes + 1;
+            return {
+              ...prev,
+              strikes: newStrikes,
+              status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+              modules: {
+                ...prev.modules,
+                glyphs: {
+                  ...prev.modules.glyphs,
+                  pressedGlyphs: [],
+                },
+              },
+            };
+          } else {
+            sound.beep(800);
+            if (action.isSolved) sound.moduleSolved();
+
+            const next: MissionState = {
+              ...prev,
+              modules: {
+                ...prev.modules,
+                glyphs: {
+                  ...prev.modules.glyphs,
+                  pressedGlyphs: action.nextPressed,
+                  solved: action.isSolved,
+                },
+              },
+            };
+            if (checkVictory(next)) next.status = 'victory';
+            return next;
+          }
+        }
+
+        case 'FREQUENCY_CHANGED': {
+          return {
+            ...prev,
+            modules: {
+              ...prev.modules,
+              frequency: {
+                ...prev.modules.frequency,
+                currentFrequency: action.frequency,
+              },
+            },
+          };
+        }
+
+        case 'FREQUENCY_LOCKED': {
+          if (action.isCorrect) {
+            sound.moduleSolved();
+            const next: MissionState = {
+              ...prev,
+              modules: {
+                ...prev.modules,
+                frequency: {
+                  ...prev.modules.frequency,
+                  solved: true,
+                },
+              },
+            };
+            if (checkVictory(next)) next.status = 'victory';
+            return next;
+          } else {
+            sound.strike();
+            const newStrikes = prev.strikes + 1;
+            return {
+              ...prev,
+              strikes: newStrikes,
+              status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+            };
+          }
+        }
+
+        case 'MEMORY_STAGE_ADVANCE': {
+          sound.beep(950);
+          if (action.isSolved) sound.moduleSolved();
+
+          const next: MissionState = {
+            ...prev,
+            modules: {
+              ...prev.modules,
+              memory: {
+                ...prev.modules.memory,
+                currentStage: action.nextStage,
+                historyPresses: action.history,
+                solved: action.isSolved,
+              },
+            },
+          };
+          if (checkVictory(next)) next.status = 'victory';
+          return next;
+        }
+
+        case 'MEMORY_RESET': {
+          sound.strike();
+          const newStrikes = prev.strikes + 1;
+          return {
+            ...prev,
+            strikes: newStrikes,
+            status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+            modules: {
+              ...prev.modules,
+              memory: {
+                ...prev.modules.memory,
+                currentStage: 0,
+                historyPresses: [],
+              },
+            },
+          };
+        }
+
+        case 'ROLE_SWAP': {
+          setRole((r) => (r === 'operative' ? 'analyst' : 'operative'));
+          return prev;
+        }
+
+        case 'PLAY_AGAIN': {
+          if (action.swapRoles) {
+            setRole((r) => (r === 'operative' ? 'analyst' : 'operative'));
+          }
+          return action.newMission;
+        }
+
+        case 'DETONATED': {
+          return {
+            ...prev,
+            remainingSeconds: 0,
+            status: 'detonated',
+          };
+        }
+
+        default:
+          return prev;
       }
-      return next;
     });
   };
 
-  // Timer Tick Interval (Runs on Host or in Solo Mode)
+  // Local Countdown Timer: runs independently on both devices during active game.
+  // Neither phone overrides the other's state with timer ticks!
   useEffect(() => {
     if (!gameState || gameState.status !== 'active') return;
-    if (!network.isHost && !isSoloMode) return;
 
     const timer = setInterval(() => {
       setGameState((prev) => {
@@ -89,57 +266,26 @@ export function App() {
 
         const nextSeconds = prev.remainingSeconds - 1;
         if (nextSeconds <= 0) {
-          const detonatedState: MissionState = {
+          if (network.isHost && network.connected) {
+            network.send({ type: 'DETONATED', sender: network.clientId });
+          }
+          return {
             ...prev,
             remainingSeconds: 0,
             status: 'detonated',
           };
-          if (!isSoloMode && network.connected) {
-            network.send({ type: 'STATE_SYNC', state: detonatedState, sender: network.clientId });
-          }
-          return detonatedState;
         }
 
-        // Play tense tick
         sound.tick(nextSeconds <= 30);
-
-        const updated: MissionState = {
+        return {
           ...prev,
           remainingSeconds: nextSeconds,
         };
-        if (!isSoloMode && network.connected) {
-          network.send({ type: 'STATE_SYNC', state: updated, sender: network.clientId });
-        }
-        return updated;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameState?.status, isSoloMode]);
-
-  // Check victory condition
-  const checkVictory = (state: MissionState): boolean => {
-    return (
-      state.modules.wires.solved &&
-      state.modules.glyphs.solved &&
-      state.modules.frequency.solved &&
-      state.modules.memory.solved
-    );
-  };
-
-  // Trigger strike
-  const registerStrike = () => {
-    sound.strike();
-    updateAndBroadcastState((prev) => {
-      const newStrikes = prev.strikes + 1;
-      const isDetonated = newStrikes >= prev.maxStrikes;
-      return {
-        ...prev,
-        strikes: newStrikes,
-        status: isDetonated ? 'detonated' : prev.status,
-      };
-    });
-  };
+  }, [gameState?.status]);
 
   // Operative Action 1: Wire Cut
   const handleCutWire = (index: number) => {
@@ -148,11 +294,22 @@ export function App() {
 
     const isCorrect = index === gameState.modules.wires.correctWireIndex;
 
-    if (isCorrect) {
-      sound.moduleSolved();
-      updateAndBroadcastState((prev) => {
-        const cut = [...prev.modules.wires.cutWires];
-        cut[index] = true;
+    if (!isSoloMode && network.connected) {
+      network.send({
+        type: 'WIRE_CUT',
+        wireIndex: index,
+        isCorrect,
+        sender: network.clientId,
+      });
+    }
+
+    setGameState((prev) => {
+      if (!prev) return prev;
+      const cut = [...prev.modules.wires.cutWires];
+      cut[index] = true;
+
+      if (isCorrect) {
+        sound.moduleSolved();
         const next: MissionState = {
           ...prev,
           modules: {
@@ -166,14 +323,13 @@ export function App() {
         };
         if (checkVictory(next)) next.status = 'victory';
         return next;
-      });
-    } else {
-      registerStrike();
-      updateAndBroadcastState((prev) => {
-        const cut = [...prev.modules.wires.cutWires];
-        cut[index] = true;
+      } else {
+        sound.strike();
+        const newStrikes = prev.strikes + 1;
         return {
           ...prev,
+          strikes: newStrikes,
+          status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
           modules: {
             ...prev.modules,
             wires: {
@@ -182,8 +338,8 @@ export function App() {
             },
           },
         };
-      });
-    }
+      }
+    });
   };
 
   // Operative Action 2: Glyph Press
@@ -192,15 +348,43 @@ export function App() {
 
     const currentPressed = gameState.modules.glyphs.pressedGlyphs;
     const expectedGlyph = gameState.modules.glyphs.correctOrder[currentPressed.length];
+    const isError = glyph !== expectedGlyph;
+    const nextPressed = isError ? [] : [...currentPressed, glyph];
+    const isSolved = !isError && nextPressed.length === 4;
 
-    if (glyph === expectedGlyph) {
-      sound.beep(800);
-      const nextPressed = [...currentPressed, glyph];
-      const isSolved = nextPressed.length === 4;
+    if (!isSoloMode && network.connected) {
+      network.send({
+        type: 'GLYPH_PRESSED',
+        glyph,
+        nextPressed,
+        isSolved,
+        isError,
+        sender: network.clientId,
+      });
+    }
 
-      if (isSolved) sound.moduleSolved();
+    setGameState((prev) => {
+      if (!prev) return prev;
 
-      updateAndBroadcastState((prev) => {
+      if (isError) {
+        sound.strike();
+        const newStrikes = prev.strikes + 1;
+        return {
+          ...prev,
+          strikes: newStrikes,
+          status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+          modules: {
+            ...prev.modules,
+            glyphs: {
+              ...prev.modules.glyphs,
+              pressedGlyphs: [],
+            },
+          },
+        };
+      } else {
+        sound.beep(800);
+        if (isSolved) sound.moduleSolved();
+
         const next: MissionState = {
           ...prev,
           modules: {
@@ -214,37 +398,36 @@ export function App() {
         };
         if (checkVictory(next)) next.status = 'victory';
         return next;
-      });
-    } else {
-      // Strike & reset sequence
-      registerStrike();
-      updateAndBroadcastState((prev) => ({
-        ...prev,
-        modules: {
-          ...prev.modules,
-          glyphs: {
-            ...prev.modules.glyphs,
-            pressedGlyphs: [],
-          },
-        },
-      }));
-    }
+      }
+    });
   };
 
   // Operative Action 3: Frequency Change & Lock
   const handleChangeFrequency = (freq: number) => {
     if (!gameState || gameState.status !== 'active') return;
     sound.beep(300 + freq / 4);
-    updateAndBroadcastState((prev) => ({
-      ...prev,
-      modules: {
-        ...prev.modules,
-        frequency: {
-          ...prev.modules.frequency,
-          currentFrequency: freq,
+
+    if (!isSoloMode && network.connected) {
+      network.send({
+        type: 'FREQUENCY_CHANGED',
+        frequency: freq,
+        sender: network.clientId,
+      });
+    }
+
+    setGameState((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        modules: {
+          ...prev.modules,
+          frequency: {
+            ...prev.modules.frequency,
+            currentFrequency: freq,
+          },
         },
-      },
-    }));
+      };
+    });
   };
 
   const handleLockFrequency = () => {
@@ -252,9 +435,19 @@ export function App() {
     const { currentFrequency, targetFrequency, tolerance } = gameState.modules.frequency;
     const isCorrect = Math.abs(currentFrequency - targetFrequency) <= tolerance;
 
-    if (isCorrect) {
-      sound.moduleSolved();
-      updateAndBroadcastState((prev) => {
+    if (!isSoloMode && network.connected) {
+      network.send({
+        type: 'FREQUENCY_LOCKED',
+        isCorrect,
+        sender: network.clientId,
+      });
+    }
+
+    setGameState((prev) => {
+      if (!prev) return prev;
+
+      if (isCorrect) {
+        sound.moduleSolved();
         const next: MissionState = {
           ...prev,
           modules: {
@@ -267,10 +460,16 @@ export function App() {
         };
         if (checkVictory(next)) next.status = 'victory';
         return next;
-      });
-    } else {
-      registerStrike();
-    }
+      } else {
+        sound.strike();
+        const newStrikes = prev.strikes + 1;
+        return {
+          ...prev,
+          strikes: newStrikes,
+          status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+        };
+      }
+    });
   };
 
   // Operative Action 4: Memory Core Button Press
@@ -291,18 +490,30 @@ export function App() {
     if (isCorrect) {
       sound.beep(950);
       const isFinalStage = memory.currentStage >= memory.stages.length - 1;
+      const nextStage = memory.currentStage + (isFinalStage ? 0 : 1);
+      const nextHistory = [...memory.historyPresses, { position, label }];
 
       if (isFinalStage) sound.moduleSolved();
 
-      updateAndBroadcastState((prev) => {
-        const nextHistory = [...prev.modules.memory.historyPresses, { position, label }];
+      if (!isSoloMode && network.connected) {
+        network.send({
+          type: 'MEMORY_STAGE_ADVANCE',
+          nextStage,
+          history: nextHistory,
+          isSolved: isFinalStage,
+          sender: network.clientId,
+        });
+      }
+
+      setGameState((prev) => {
+        if (!prev) return prev;
         const next: MissionState = {
           ...prev,
           modules: {
             ...prev.modules,
             memory: {
               ...prev.modules.memory,
-              currentStage: prev.modules.memory.currentStage + (isFinalStage ? 0 : 1),
+              currentStage: nextStage,
               historyPresses: nextHistory,
               solved: isFinalStage,
             },
@@ -312,19 +523,32 @@ export function App() {
         return next;
       });
     } else {
-      // Strike & reset back to stage 1
-      registerStrike();
-      updateAndBroadcastState((prev) => ({
-        ...prev,
-        modules: {
-          ...prev.modules,
-          memory: {
-            ...prev.modules.memory,
-            currentStage: 0,
-            historyPresses: [],
+      sound.strike();
+
+      if (!isSoloMode && network.connected) {
+        network.send({
+          type: 'MEMORY_RESET',
+          sender: network.clientId,
+        });
+      }
+
+      setGameState((prev) => {
+        if (!prev) return prev;
+        const newStrikes = prev.strikes + 1;
+        return {
+          ...prev,
+          strikes: newStrikes,
+          status: newStrikes >= prev.maxStrikes ? 'detonated' : prev.status,
+          modules: {
+            ...prev.modules,
+            memory: {
+              ...prev.modules.memory,
+              currentStage: 0,
+              historyPresses: [],
+            },
           },
-        },
-      }));
+        };
+      });
     }
   };
 
@@ -335,7 +559,8 @@ export function App() {
   ) => {
     setIsConnecting(true);
     setConnectionError(null);
-    // Generate 5 random clean uppercase letters (excluding confusing characters like O, I, 0, 1)
+
+    // 5 clean uppercase random letters (no ambiguous chars)
     const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     const code = Array.from({ length: 5 }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
 
@@ -386,18 +611,20 @@ export function App() {
     const currentDiff = gameState?.difficulty || difficulty;
     const newMission = generateMission(currentDiff);
     newMission.status = 'active';
-    setGameState(newMission);
-
-    if (swapRoles) {
-      setRole((prev) => (prev === 'operative' ? 'analyst' : 'operative'));
-      if (!isSoloMode && network.connected) {
-        network.send({ type: 'ROLE_SWAP', sender: network.clientId });
-      }
-    }
 
     if (!isSoloMode && network.connected) {
-      network.send({ type: 'STATE_SYNC', state: newMission, sender: network.clientId });
+      network.send({
+        type: 'PLAY_AGAIN',
+        newMission,
+        swapRoles,
+        sender: network.clientId,
+      });
     }
+
+    if (swapRoles) {
+      setRole((r) => (r === 'operative' ? 'analyst' : 'operative'));
+    }
+    setGameState(newMission);
   };
 
   const handleReturnToLobby = () => {
