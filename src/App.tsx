@@ -361,12 +361,14 @@ export function App() {
     setConnectionError(null);
 
     try {
-      await network.joinRoom(code);
+      const syncedState = await network.joinRoom(code);
       setRoomCode(code.toUpperCase());
       setRole(chosenRole);
       setIsSoloMode(false);
-    } catch {
-      setConnectionError('Failed to connect to room. Check the code and try again.');
+      setGameState(syncedState);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to connect to room. Check the code and try again.';
+      setConnectionError(msg);
     } finally {
       setIsConnecting(false);
     }

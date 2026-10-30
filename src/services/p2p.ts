@@ -11,16 +11,16 @@ export type PeerMessage =
   | { type: 'ROLE_SWAP' }
   | { type: 'PING' };
 
-// High-reliability STUN & TURN configuration to guarantee cellular (carrier NAT) & cross-network traversal
+// High-reliability STUN & TURN configuration
 export const PEER_CONFIG = {
-  debug: 1,
+  debug: 2,
   config: {
     iceServers: [
-      // Standard Google STUN
+      // Standard STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-      // OpenRelay Free Community TURN / STUN Servers (Metered)
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      // OpenRelay Public TURN (UDP & TCP fallback)
       {
         urls: 'turn:openrelay.metered.ca:80',
         username: 'openrelayproject',
@@ -72,20 +72,34 @@ export class MultiplayerNetwork {
       try {
         this.peer = new Peer(peerId, PEER_CONFIG);
 
+        let opened = false;
+        const timeout = setTimeout(() => {
+          if (!opened) {
+            reject(new Error('Room server timed out. Check connection.'));
+          }
+        }, 12000);
+
         this.peer.on('open', (id) => {
+          opened = true;
+          clearTimeout(timeout);
           resolve(id);
         });
 
         this.peer.on('connection', (connection) => {
           this.conn = connection;
-          this.setupConnection();
-          // Send initial state to newly connected client
-          setTimeout(() => {
+          this.setupConnection(() => {
+            // Send state on link established
             this.send({ type: 'STATE_SYNC', state: initialState });
-          }, 400);
+            // Send again after brief tick to ensure non-dropped packet
+            setTimeout(() => {
+              this.send({ type: 'STATE_SYNC', state: initialState });
+            }, 500);
+          });
         });
 
         this.peer.on('error', (err) => {
+          clearTimeout(timeout);
+          console.error('[PeerJS Host Error]:', err);
           reject(err);
         });
       } catch (e) {
@@ -95,7 +109,7 @@ export class MultiplayerNetwork {
   }
 
   // Join an existing room
-  public joinRoom(code: string): Promise<void> {
+  public joinRoom(code: string): Promise<MissionState> {
     return new Promise((resolve, reject) => {
       this.disconnect();
       this.isHost = false;
@@ -105,24 +119,52 @@ export class MultiplayerNetwork {
       try {
         this.peer = new Peer(PEER_CONFIG);
 
+        let resolved = false;
+        const timeout = setTimeout(() => {
+          if (!resolved) {
+            this.disconnect();
+            reject(new Error('Could not reach Host. Verify code and cellular data.'));
+          }
+        }, 15000);
+
         this.peer.on('open', () => {
           const connection = this.peer!.connect(targetHostId, {
             reliable: true,
           });
           this.conn = connection;
 
-          connection.on('open', () => {
-            this.setupConnection();
-            resolve();
-          });
+          this.setupConnection();
+
+          // Wait for first STATE_SYNC message from host to confirm actual data flow
+          const stateListener = (msg: PeerMessage) => {
+            if (msg.type === 'STATE_SYNC' && !resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              resolve(msg.state);
+            }
+          };
+
+          const prevMsgCallback = this.onMessageCallback;
+          this.onMessageCallback = (msg: PeerMessage) => {
+            stateListener(msg);
+            if (prevMsgCallback) prevMsgCallback(msg);
+          };
 
           connection.on('error', (err) => {
+            clearTimeout(timeout);
+            console.error('[PeerJS Conn Error]:', err);
             reject(err);
           });
         });
 
         this.peer.on('error', (err) => {
-          reject(err);
+          clearTimeout(timeout);
+          console.error('[PeerJS Client Error]:', err);
+          if (err.type === 'peer-unavailable') {
+            reject(new Error(`Room "${code}" not found. Ensure Host phone is on waiting screen.`));
+          } else {
+            reject(new Error(err.message || 'Connection failure.'));
+          }
         });
       } catch (e) {
         reject(e);
@@ -130,12 +172,21 @@ export class MultiplayerNetwork {
     });
   }
 
-  private setupConnection() {
+  private setupConnection(onOpenCallback?: () => void) {
     if (!this.conn) return;
 
-    this.connected = true;
-    if (this.onConnectionStatusCallback) {
-      this.onConnectionStatusCallback(true);
+    const handleOpen = () => {
+      this.connected = true;
+      if (this.onConnectionStatusCallback) {
+        this.onConnectionStatusCallback(true);
+      }
+      if (onOpenCallback) onOpenCallback();
+    };
+
+    if (this.conn.open) {
+      handleOpen();
+    } else {
+      this.conn.on('open', handleOpen);
     }
 
     this.conn.on('data', (data) => {
@@ -154,21 +205,33 @@ export class MultiplayerNetwork {
         this.onConnectionStatusCallback(false);
       }
     });
+
+    this.conn.on('error', (err) => {
+      console.error('[Connection Data Error]:', err);
+    });
   }
 
   public send(msg: PeerMessage) {
     if (this.conn && this.conn.open) {
-      this.conn.send(msg);
+      try {
+        this.conn.send(msg);
+      } catch (err) {
+        console.error('[Send Error]:', err);
+      }
     }
   }
 
   public disconnect() {
     if (this.conn) {
-      this.conn.close();
+      try {
+        this.conn.close();
+      } catch {}
       this.conn = null;
     }
     if (this.peer) {
-      this.peer.destroy();
+      try {
+        this.peer.destroy();
+      } catch {}
       this.peer = null;
     }
     this.connected = false;
