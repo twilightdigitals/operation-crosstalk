@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { GameRole } from '../services/p2p';
-import { Shield, Users, Radio, Play, Smartphone, HelpCircle } from 'lucide-react';
+import { Shield, Users, Radio, Play, Smartphone, HelpCircle, Music } from 'lucide-react';
+import { sound, type SoundtrackChoice } from '../services/sound';
 
 interface LobbyProps {
   onCreateRoom: (role: GameRole, difficulty: 'rookie' | 'veteran' | 'impossible') => void;
@@ -22,6 +23,12 @@ export const Lobby: React.FC<LobbyProps> = ({
   const [difficulty, setDifficulty] = useState<'rookie' | 'veteran' | 'impossible'>('veteran');
   const [joinCode, setJoinCode] = useState('');
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<SoundtrackChoice>(sound.getSoundtrack());
+
+  const handleSelectTrack = (track: SoundtrackChoice) => {
+    sound.setSoundtrack(track);
+    setSelectedTrack(track);
+  };
 
   return (
     <div className="w-full max-w-md mx-auto min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between p-6 select-none font-mono">
@@ -89,6 +96,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                 <p>1. <strong>Player 1:</strong> Tap &ldquo;HOST MISSION&rdquo;, pick your role, and tell your partner the 5-letter room code.</p>
                 <p>2. <strong>Player 2:</strong> Tap &ldquo;JOIN MISSION&rdquo;, enter the room code, and pick the opposite role.</p>
                 <p>3. <strong>Golden Rule:</strong> Sit on the couch together, but <span className="text-red-400 font-bold">NEVER look at each other&apos;s phone!</span> Only communicate by talking out loud.</p>
+                <p className="pt-1.5 text-[10px] text-zinc-500 border-t border-zinc-800">
+                  🎵 <em>Cinematic spy themes composed by Kevin MacLeod (incompetech.com), licensed under Creative Commons By Attribution 4.0.</em>
+                </p>
               </div>
             )}
           </div>
@@ -149,6 +159,38 @@ export const Lobby: React.FC<LobbyProps> = ({
                     }`}
                   >
                     {diff === 'rookie' ? '5m 00s' : diff === 'veteran' ? '4m 00s' : '3m 00s'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Cinematic Spy Soundtrack Pick */}
+            <div className="flex flex-col gap-1.5 pt-1">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                  <Music className="w-3.5 h-3.5 text-amber-400" /> SPY SOUNDTRACK:
+                </span>
+                <span className="text-[10px] text-zinc-500">VOICE-CALIBRATED</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                {[
+                  { id: 'spy-groove', label: 'Spy Groove', desc: 'B3 Organ & Beats (Classic)' },
+                  { id: 'spy-glass', label: 'Spy Glass', desc: '007 Brass & Vibes' },
+                  { id: 'covert-affair', label: 'Covert Affair', desc: 'Noir Double-Bass' },
+                  { id: 'volatile-reaction', label: 'Volatile Reaction', desc: '7/4 Action Thriller' },
+                ].map((track) => (
+                  <button
+                    key={track.id}
+                    type="button"
+                    onClick={() => handleSelectTrack(track.id as SoundtrackChoice)}
+                    className={`py-2 px-2.5 rounded-xl border text-left flex flex-col transition-all ${
+                      selectedTrack === track.id
+                        ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-bold'
+                        : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <span>{track.label}</span>
+                    <span className="text-[9px] text-zinc-500 font-normal">{track.desc}</span>
                   </button>
                 ))}
               </div>
@@ -236,6 +278,38 @@ export const Lobby: React.FC<LobbyProps> = ({
                   <span>OPERATIVE 🕹️</span>
                   <span className="text-[9px] text-zinc-400 font-normal">Controls the Device</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Cinematic Spy Soundtrack Pick */}
+            <div className="flex flex-col gap-1.5 pt-1">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                  <Music className="w-3.5 h-3.5 text-amber-400" /> SPY SOUNDTRACK:
+                </span>
+                <span className="text-[10px] text-zinc-500">VOICE-CALIBRATED</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                {[
+                  { id: 'spy-groove', label: 'Spy Groove', desc: 'B3 Organ & Beats' },
+                  { id: 'spy-glass', label: 'Spy Glass', desc: '007 Brass & Vibes' },
+                  { id: 'covert-affair', label: 'Covert Affair', desc: 'Noir Double-Bass' },
+                  { id: 'volatile-reaction', label: 'Volatile Reaction', desc: '7/4 Action Thriller' },
+                ].map((track) => (
+                  <button
+                    key={track.id}
+                    type="button"
+                    onClick={() => handleSelectTrack(track.id as SoundtrackChoice)}
+                    className={`py-2 px-2.5 rounded-xl border text-left flex flex-col transition-all ${
+                      selectedTrack === track.id
+                        ? 'bg-amber-950/70 border-amber-500 text-amber-200 font-bold'
+                        : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <span>{track.label}</span>
+                    <span className="text-[9px] text-zinc-500 font-normal">{track.desc}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
