@@ -6,7 +6,7 @@
 
 ---
 
-## 🎮 How to Play with Your Wife / Partner
+## 🎮 How to Play with Your Partner
 
 ### Rule #1: NEVER Look at Each Other's Screen!
 All information must be communicated verbally out loud across the couch or table.
