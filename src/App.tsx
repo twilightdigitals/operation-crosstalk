@@ -51,7 +51,7 @@ export function App() {
                   ...prev,
                   status: 'active',
                 };
-                network.send({ type: 'STATE_SYNC', state: activeState });
+                network.send({ type: 'STATE_SYNC', state: activeState, sender: network.clientId });
                 return activeState;
               }
               return prev;
@@ -72,7 +72,7 @@ export function App() {
       if (!prev) return prev;
       const next = updater(prev);
       if (!isSoloMode && network.connected) {
-        network.send({ type: 'STATE_SYNC', state: next });
+        network.send({ type: 'STATE_SYNC', state: next, sender: network.clientId });
       }
       return next;
     });
@@ -95,7 +95,7 @@ export function App() {
             status: 'detonated',
           };
           if (!isSoloMode && network.connected) {
-            network.send({ type: 'STATE_SYNC', state: detonatedState });
+            network.send({ type: 'STATE_SYNC', state: detonatedState, sender: network.clientId });
           }
           return detonatedState;
         }
@@ -108,7 +108,7 @@ export function App() {
           remainingSeconds: nextSeconds,
         };
         if (!isSoloMode && network.connected) {
-          network.send({ type: 'STATE_SYNC', state: updated });
+          network.send({ type: 'STATE_SYNC', state: updated, sender: network.clientId });
         }
         return updated;
       });
@@ -391,12 +391,12 @@ export function App() {
     if (swapRoles) {
       setRole((prev) => (prev === 'operative' ? 'analyst' : 'operative'));
       if (!isSoloMode && network.connected) {
-        network.send({ type: 'ROLE_SWAP' });
+        network.send({ type: 'ROLE_SWAP', sender: network.clientId });
       }
     }
 
     if (!isSoloMode && network.connected) {
-      network.send({ type: 'STATE_SYNC', state: newMission });
+      network.send({ type: 'STATE_SYNC', state: newMission, sender: network.clientId });
     }
   };
 
