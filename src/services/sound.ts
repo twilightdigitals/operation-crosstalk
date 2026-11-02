@@ -262,15 +262,12 @@ class SoundSystem {
         // Frantic double-beep ("pip-pip") for final 10 seconds!
         playBeep(0, 0.035, 0.24);
         playBeep(0.075, 0.045, 0.26);
-        this.vibrate([25, 45, 25]);
       } else if (isUrgent) {
         // Higher pitched urgent single beep
         playBeep(0, 0.045, 0.22);
-        this.vibrate(20);
       } else {
         // Standard clinical digital timer beep
         playBeep(0, 0.04, 0.18);
-        this.vibrate(10);
       }
     } catch {
       // AudioContext policy fallback
