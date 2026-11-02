@@ -1,43 +1,15 @@
 // Web Audio API Sound Generator & Cinematic Espionage Soundtrack for Operation: CrossTalk
 
-export type SoundtrackChoice =
-  | 'spy-groove'
-  | 'spy-glass'
-  | 'covert-affair'
-  | 'volatile-reaction'
-  | 'none';
-
 /**
- * Authentic Studio-Produced Cinematic Spy Movie Soundtrack Player
- * Streams high-fidelity espionage scores composed with live brass, B3 organ,
- * acoustic double-bass, vibraphone, congas, and film percussion.
- *
- * Automatically calibrated to dialogue-safe volume (~0.12) to ensure
- * clear player verbal communication.
+ * Authentic 007 Spy Thriller Soundtrack Player ("Spy Glass")
+ * Features vintage James Bond style brass, vibraphone, saxophones, and walking bass.
+ * Calibrated to dialogue-safe volume (~0.12) to ensure clear verbal communication.
  */
 class CinematicSoundtrack {
   private audio: HTMLAudioElement | null = null;
-  private currentTrack: SoundtrackChoice = 'spy-groove';
   private isMuted: boolean = false;
   private volume: number = 0.12; // Dialogue-safe master level
   private fadeInterval: number | null = null;
-
-  public setTrack(track: SoundtrackChoice) {
-    if (this.currentTrack === track) return;
-    const wasPlaying = this.isPlaying();
-    this.currentTrack = track;
-    if (this.audio) {
-      this.audio.pause();
-      this.audio = null;
-    }
-    if (wasPlaying && track !== 'none') {
-      this.play();
-    }
-  }
-
-  public getTrack(): SoundtrackChoice {
-    return this.currentTrack;
-  }
 
   public isPlaying(): boolean {
     return !!this.audio && !this.audio.paused;
@@ -51,17 +23,9 @@ class CinematicSoundtrack {
   }
 
   public play() {
-    if (this.currentTrack === 'none') {
-      this.stop();
-      return;
-    }
+    const src = './spy-glass.mp3';
 
-    const src = `./${this.currentTrack}.mp3`;
-
-    if (!this.audio || !this.audio.src.endsWith(`${this.currentTrack}.mp3`)) {
-      if (this.audio) {
-        this.audio.pause();
-      }
+    if (!this.audio) {
       this.audio = new Audio(src);
       this.audio.loop = true;
       this.audio.preload = 'auto';
@@ -167,7 +131,7 @@ class SoundSystem {
     return this.isMuted;
   }
 
-  // Cinematic Soundtrack Controls
+  // 007 Cinematic Soundtrack Controls
   public startMusic(remainingSeconds?: number) {
     this.initCtx();
     this.soundtrack.play();
@@ -182,14 +146,6 @@ class SoundSystem {
 
   public stopMusic() {
     this.soundtrack.stop();
-  }
-
-  public setSoundtrack(track: SoundtrackChoice) {
-    this.soundtrack.setTrack(track);
-  }
-
-  public getSoundtrack(): SoundtrackChoice {
-    return this.soundtrack.getTrack();
   }
 
   public setMusicVolume(vol: number) {

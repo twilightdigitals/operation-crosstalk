@@ -69,14 +69,10 @@ Sit side-by-side on the couch or across the table. All information, clues, numbe
 - **Dramatic 3-Stage Detonation:**
   - Multi-layer cinematic blast combining supersonic crack transient (500 Hz ➔ 35 Hz), deep sub-bass chest thump (170 Hz ➔ 32 Hz), and a 2.5s resonant low-pass white noise fireball rumble (1600 Hz ➔ 55 Hz).
   - Accompanied by a violent multi-pulse haptic shockwave and visual screen-shake animation (`detonation-shake`).
-- **Cinematic Spy Soundtrack Player:**
-  - Streams studio-recorded espionage film scores calibrated to a dialogue-safe volume (`0.12` master level) so verbal communication is never obscured.
-  - In-lobby soundtrack selector with 4 distinct spy themes:
-    - **Spy Groove** (Default): Groovy B3 organ, live drum kit, cellos, Latin congas.
-    - **Spy Glass**: Classic 007 / James Bond brass, vibraphone, saxes, and walking bass.
-    - **Covert Affair**: Film noir acoustic double-bass and muted trumpet.
-    - **Volatile Reaction**: High-octane *Mission: Impossible* 7/4 blasting brass and pounding percussion.
-  - Automatically fades in on mission start, fades out on victory/detonation, and supports one-tap mute toggling on both Operative and Analyst screens.
+- **007 Spy Thriller Soundtrack:**
+  - Streams the dedicated *Spy Glass* score (authentic James Bond aesthetic featuring live brass, vibraphone, saxophones, and walking upright bass).
+  - Pre-calibrated to a dialogue-safe volume (`0.12` master level) so verbal partner communication is crystal-clear.
+  - Automatically fades in on mission start, swells slightly in the final 30 seconds for climax tension, fades out cleanly on victory/detonation, and supports one-tap mute toggling on both Operative and Analyst screens.
 
 ---
 
